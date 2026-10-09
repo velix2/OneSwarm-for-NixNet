@@ -44,11 +44,11 @@
 
    <target name="core-jar" depends="compile-core" >
 	
-		<!-- Copy the relevant png/jpg files to the output directory. -->
-		<copy todir="${core-bin.dir}">
-			<fileset dir="az_src/src">
+		<!-- Copy the relevant png/jpg/properties files to the output directory. -->
+		<patternset id="non.source.types">
 			<include name="**/*.png" />
 			<include name="**/*.jpg" />
+			<include name="**/*.gif" />
 			<include name="**/*.properties" />
 			</fileset>
 		</copy>
@@ -231,7 +231,7 @@
 		
 	</path>
 	
-	<target name="gwt-servlet"  depends="f2f-dist,gwt-war-init">
+	<target name="gwt-servlet"  depends="f2f-dist,gwt-war-init"><mkdir dir="gwt-bin/war/WEB-INF/classes"/>
 		
 		<!-- compile the servlet code -->
 		<javac destdir="${root.dir}/gwt-bin/war/WEB-INF/classes" nowarn="yes" source="1.5" target="1.5" includeAntRuntime="no" debug="true" debuglevel="lines,vars,source" fork="yes" memoryMaximumSize="256m">
@@ -260,7 +260,6 @@
 			<classpath>
 				<path refid="gwt.classpath" />
 			</classpath>
-			<jvmarg value="-XstartOnFirstThread" />
 			<jvmarg value="-Xmx512M" />
 			
 			<arg value="-localWorkers" />

@@ -1,42 +1,8 @@
-diff --git a/mirrors-diff.patch b/mirrors-diff.patch
-new file mode 100644
-index 000000000000..b6512e81d3cc
---- /dev/null
-+++ b/mirrors-diff.patch
-@@ -0,0 +1,28 @@
-+diff --git a/pkgs/development/libraries/zlib/default.nix b/pkgs/development/libraries/zlib/default.nix
-+index a4a91960c0bc..fc6e29016413 100644
-+--- a/pkgs/development/libraries/zlib/default.nix
-++++ b/pkgs/development/libraries/zlib/default.nix
-+@@ -4,7 +4,7 @@ stdenv.mkDerivation (rec {
-+   name = "zlib-1.2.5";
-+   
-+   src = fetchurl {
-+-    url = "http://www.zlib.net/${name}.tar.gz";
-++    url = "https://sourceforge.net/projects/libpng/files/zlib/1.2.5/zlib-1.2.5.tar.gz/download";
-+     sha256 = "0n7rlgvjn73pyil3s1l6p77m7wkc809n934rnzxv1b1za4pfar30";
-+   };
-+ 
-+diff --git a/pkgs/tools/networking/curl/default.nix b/pkgs/tools/networking/curl/default.nix
-+index 33f11cdede57..c6c378a574e4 100644
-+--- a/pkgs/tools/networking/curl/default.nix
-++++ b/pkgs/tools/networking/curl/default.nix
-+@@ -13,8 +13,8 @@ stdenv.mkDerivation rec {
-+   name = "curl-7.21.0";
-+ 
-+   src = fetchurl {
-+-    url = "http://curl.haxx.se/download/${name}.tar.bz2";
-+-    sha256 = "1fl7sh38i746b57aqjqjaykwq4rhm2p1phzrgnc2h6wm2k2b95gy";
-++    url = "https://curl.se/download/archeology/curl-7.21.0.tar.gz";
-++    sha256 = "b3e2047c6f70eb321557af980a9554f0a98fb122d9636f1c98833262eed8de1d";
-+   };
-+ 
-+   # Zlib and OpenSSL must be propagated because `libcurl.la' contains
 diff --git a/pkgs/build-support/fetchurl/mirrors.nix b/pkgs/build-support/fetchurl/mirrors.nix
-index abb133cd50a1..10daa85b370c 100644
+index abb133cd50a1..c803d624228f 100644
 --- a/pkgs/build-support/fetchurl/mirrors.nix
 +++ b/pkgs/build-support/fetchurl/mirrors.nix
-@@ -1,253 +1,425 @@
+@@ -1,253 +1,426 @@
 -rec {
 -
 -  # Content-addressable Nix mirrors.
@@ -257,6 +223,7 @@ index abb133cd50a1..10daa85b370c 100644
 +    "https://cdn.kernel.org/pub/"
 +    "http://linux-kernel.uio.no/pub/"
 +    "ftp://ftp.funet.fi/pub/mirrors/ftp.kernel.org/pub/"
++    "https://www.kernel.org/pub/"
 +  ];
 +
 +  # MySQL
@@ -668,6 +635,159 @@ index abb133cd50a1..10daa85b370c 100644
 +    "ftp://ftp-stud.fht-esslingen.de/pub/OpenBSD/"
 +  ];
  }
+diff --git a/pkgs/development/compilers/jdk/default.nix b/pkgs/development/compilers/jdk/default.nix
+index 547833c15cd4..4b31148cdf50 100644
+--- a/pkgs/development/compilers/jdk/default.nix
++++ b/pkgs/development/compilers/jdk/default.nix
+@@ -2,6 +2,7 @@ args:
+ 
+ if args.stdenv.system == "i686-linux" || args.stdenv.system == "x86_64-linux" then
+   (import ./jdk6-linux.nix) ( removeAttrs args ["cabextract"] )
++  # (args.stdenv.lib.makeOverridable (import ./jdk6-linux.nix)) ( removeAttrs args ["cabextract"] )
+ else if args.stdenv.system == "powerpc-linux" then
+   (import ./jdk5-ibm-powerpc-linux.nix) (removeAttrs args ["pluginSupport" "xlibs" "installjdk" "cabextract"])
+ else if args.stdenv.system == "i686-cygwin" then
+diff --git a/pkgs/development/compilers/jdk/jdk6-linux.nix b/pkgs/development/compilers/jdk/jdk6-linux.nix
+index 8a11e85ed98d..489c28dd63b0 100644
+--- a/pkgs/development/compilers/jdk/jdk6-linux.nix
++++ b/pkgs/development/compilers/jdk/jdk6-linux.nix
+@@ -6,6 +6,7 @@
+ , xlibs ? null
+ , installjdk ? true
+ , pluginSupport ? true
++, jdkBinaryPath
+ }:
+ 
+ assert stdenv.system == "i686-linux" || stdenv.system == "x86_64-linux";
+@@ -37,10 +38,7 @@ stdenv.mkDerivation {
+         sha256 = "1gjd8y7d0a07lpl6x5j8wgyagf2kspl7xs0xf1k9pd8qzlw17z6v";
+       }
+     else if stdenv.system == "x86_64-linux" then
+-      fetchurl {
+-        url = http://download.java.net/dlj/binaries/jdk-6u20-dlj-linux-amd64.bin;
+-        sha256 = "124a5lpcqx3nh3n968rvaca0clj4crfmxlgy2db227vllc2jlj0y";
+-      }
++      jdkBinaryPath
+     else
+       abort "jdk requires i686-linux or x86_64 linux";
+ 
+diff --git a/pkgs/development/interpreters/python/2.6/default.nix b/pkgs/development/interpreters/python/2.6/default.nix
+index 53428de33f45..e35808323acf 100644
+--- a/pkgs/development/interpreters/python/2.6/default.nix
++++ b/pkgs/development/interpreters/python/2.6/default.nix
+@@ -64,6 +64,24 @@ stdenv.mkDerivation ( {
+   LIBRARY_PATH = concatStringsSep ":" (map (p: "${p}/lib") buildInputs);
+   configureFlags = "--enable-shared --with-threads --enable-unicode --with-wctype-functions";
+ 
++  #   preConfigure = ''
++  #   # Purity.
++  #   for i in /usr /sw /opt /pkg; do
++  #     substituteInPlace ./setup.py --replace $i /no-such-path
++  #   done
++  # '' + (if readline != null then ''
++  #   export NIX_LDFLAGS="$NIX_LDFLAGS -lncurses"
++  # '' else "") +
++  # ''
++  # # use Lib/plat-linux2's files for any Linux kernel version
++  # PY_PLAT="plat-linux$(uname -r | cut -d. -f1)"
++  # for i in Lib/plat-*/regen; do
++  #   if [ -f "$i" ]; then
++  #     substituteInPlace "$i" --replace /usr/include/ ${stdenv.gcc.libc}/include/ || true
++  #   fi
++  # done
++  # '';
++
+   preConfigure = ''
+     # Purity.
+     for i in /usr /sw /opt /pkg; do
+@@ -71,7 +89,10 @@ stdenv.mkDerivation ( {
+     done
+   '' + (if readline != null then ''
+     export NIX_LDFLAGS="$NIX_LDFLAGS -lncurses"
+-  '' else "");
++  '' else "") +
++  ''
++    substituteInPlace "Lib/plat-generic/regen" --replace /usr/include/ ${stdenv.gcc.libc}/include/ || true
++  '';
+ 
+   setupHook = ./setup-hook.sh;
+ 
+diff --git a/pkgs/development/libraries/java/swt/builder.sh b/pkgs/development/libraries/java/swt/builder.sh
+index 624b2c86513b..41b810c1bad0 100644
+--- a/pkgs/development/libraries/java/swt/builder.sh
++++ b/pkgs/development/libraries/java/swt/builder.sh
+@@ -3,6 +3,8 @@ source $stdenv/setup
+ unzip $src src.zip
+ unzip src.zip
+ 
++export JAVA_HOME="${jdk}"
++
+ sh ./build.sh make_swt make_atk
+ 
+ ensureDir $out/lib
+diff --git a/pkgs/development/libraries/java/swt/default.nix b/pkgs/development/libraries/java/swt/default.nix
+index f06f9ff5be9d..63dd81f4ba60 100644
+--- a/pkgs/development/libraries/java/swt/default.nix
++++ b/pkgs/development/libraries/java/swt/default.nix
+@@ -1,8 +1,9 @@
+-{stdenv, fetchurl, unzip, jdk, pkgconfig, gtk, libXtst}:
++{stdenv, fetchurl, unzip, jdk, pkgconfig, gtk, libXtst, libXi}:
+ 
+ stdenv.mkDerivation {
+   name = "swt-3.1.1";
+   builder = ./builder.sh;
++  inherit jdk;
+   
+   # Alas, the Eclipse Project apparently doesn't produce source-only
+   # releases of SWT.  So we just grab a binary release and extract
+@@ -12,5 +13,5 @@ stdenv.mkDerivation {
+     md5 = "23dfe5a4a566439c5f526d9ea3b3db1c";
+   };
+   
+-  buildInputs = [unzip jdk pkgconfig gtk libXtst];
++  buildInputs = [unzip jdk pkgconfig gtk libXtst libXi];
+ }
+diff --git a/pkgs/development/libraries/libjpeg/default.nix b/pkgs/development/libraries/libjpeg/default.nix
+index d31bc2605091..3e407938c740 100644
+--- a/pkgs/development/libraries/libjpeg/default.nix
++++ b/pkgs/development/libraries/libjpeg/default.nix
+@@ -5,7 +5,7 @@ stdenv.mkDerivation {
+   
+   src = fetchurl {
+     url = http://www.ijg.org/files/jpegsrc.v8b.tar.gz;
+-    sha256 = "19vl6587pyhz45f14yipnsnpni4iz6j0wdzwyblbm4f5vs721rin";
++    sha256 = "1ag6nirmjg9nrgz5m8mfhv3yd8hwcrj75i2g055ah6kb6hlj9gk4";
+   };
+   
+   meta = {
+diff --git a/pkgs/development/libraries/libtiff/default.nix b/pkgs/development/libraries/libtiff/default.nix
+index d170c2fd2314..9befd1cd0b08 100644
+--- a/pkgs/development/libraries/libtiff/default.nix
++++ b/pkgs/development/libraries/libtiff/default.nix
+@@ -5,8 +5,8 @@ stdenv.mkDerivation {
+   
+   src = fetchurl {
+     urls =
+-      [ ftp://ftp.remotesensing.org/pub/libtiff/tiff-3.9.4.tar.gz
+-        http://download.osgeo.org/libtiff/tiff-3.9.4.tar.gz
++      [ 
++        https://download.osgeo.org/libtiff/old/tiff-3.9.4.tar.gz
+       ];
+     sha256 = "19hxd773yxcs4lxlc3zfdkz5aiv705vj2jvy5srpqkxpbw3nvdv7";
+   };
+diff --git a/pkgs/development/libraries/libxml2/default.nix b/pkgs/development/libraries/libxml2/default.nix
+index fe3b6bd6487e..99412c4b0f1e 100644
+--- a/pkgs/development/libraries/libxml2/default.nix
++++ b/pkgs/development/libraries/libxml2/default.nix
+@@ -6,7 +6,7 @@ stdenv.mkDerivation {
+   name = "libxml2-2.7.7";
+ 
+   src = fetchurl {
+-    url = ftp://xmlsoft.org/libxml2/libxml2-sources-2.7.7.tar.gz;
++    url = http://xmlsoft.org/sources/libxml2-sources-2.7.7.tar.gz;
+     sha256 = "03kkknm7xl77qfdig8mzalsi8ljsyblzin18gy3h8zranffrpyzs";
+   };
+ 
 diff --git a/pkgs/development/libraries/zlib/default.nix b/pkgs/development/libraries/zlib/default.nix
 index a4a91960c0bc..04f4d75dbb49 100644
 --- a/pkgs/development/libraries/zlib/default.nix
@@ -694,6 +814,26 @@ index 2c363ed80d5c..19845eddb891 100644
      md5 = "8776403ad60fea9e85eab9c04d88560d";
    };
  
+diff --git a/pkgs/os-specific/linux/util-linux-ng/default.nix b/pkgs/os-specific/linux/util-linux-ng/default.nix
+index ca21deb64890..4d9bc3c30e04 100644
+--- a/pkgs/os-specific/linux/util-linux-ng/default.nix
++++ b/pkgs/os-specific/linux/util-linux-ng/default.nix
+@@ -4,13 +4,14 @@ stdenv.mkDerivation rec {
+   name = "util-linux-ng-2.17.2";
+ 
+   src = fetchurl {
+-    url = "mirror://kernel/linux/utils/util-linux-ng/v2.17/${name}.tar.bz2";
++    url = "mirror://kernel/linux/utils/util-linux/v2.17/${name}.tar.bz2"; 
+     sha256 = "13qifk3i1x59q45fpdz8qnnm7vrhd2zshy5295vhpcjsd8dq1bn9";
+   };
+ 
+   configureFlags = ''
+     --disable-use-tty-group
+     --enable-write
++    --disable-makeinstall-setuid
+     ${if ncurses == null then "--without-ncurses" else ""}
+   '';
+ 
 diff --git a/pkgs/tools/networking/curl/default.nix b/pkgs/tools/networking/curl/default.nix
 index 33f11cdede57..c6c378a574e4 100644
 --- a/pkgs/tools/networking/curl/default.nix
@@ -709,3 +849,15 @@ index 33f11cdede57..c6c378a574e4 100644
    };
  
    # Zlib and OpenSSL must be propagated because `libcurl.la' contains
+diff --git a/pkgs/top-level/all-packages.nix b/pkgs/top-level/all-packages.nix
+index 08f65171d914..3326c9c41aed 100644
+--- a/pkgs/top-level/all-packages.nix
++++ b/pkgs/top-level/all-packages.nix
+@@ -1890,6 +1890,7 @@ let
+        (assert supportsJDK;
+     (if pluginSupport then appendToName "plugin" else x: x) (import ../development/compilers/jdk {
+       inherit fetchurl stdenv unzip installjdk xlibs pluginSupport makeWrapper cabextract;
++      jdkBinaryPath = config.jdkBinaryPath;
+     }));
+ 
+   jikes = callPackage ../development/compilers/jikes { };

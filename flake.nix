@@ -44,6 +44,7 @@
         config.packageOverrides = self: {
           curl = pkgs-new.pkgsStatic.curl;
         };
+        config.jdkBinaryPath = ./jdk-6u20-linux-x64.bin;
       };
 
       libs = (with pkgs; [
@@ -56,6 +57,7 @@
     {
       packages.${system}.default = pkgs-new.stdenv.mkDerivation {
         name = "oneswarm";
+
         buildInputs = with pkgs; [
           jdk
           swt
@@ -66,20 +68,21 @@
           ant
         '';
 
+        devShell = pkgs-new.mkShell {
+          buildInputs = with pkgs; [
+            jdk
+            swt
+            ant
+          ] ++ libs;
+        };
+
         installPhase = ''
           mkdir -p $out/bin
           mkdir -p $out/share/oneswarm
-          
-          # Recreate the expected source structure for the web files
-          mkdir -p $out/share/oneswarm/oneswarm_gwt_ui
-          cp -r oneswarm_gwt_ui/war $out/share/oneswarm/oneswarm_gwt_ui/
 
-          cp OneSwarm.jar $out/share/oneswarm/
+          cp OneSwarm.jar $out/share/oneswarm
           cp build/swt/swt-gtk-linux-x86_64.jar $out/share/oneswarm/swt.jar
           
-          # If gwt-bin is needed, keep it in the working directory
-          cp -r gwt-bin $out/share/oneswarm/ || true
-
           # Create launcher script
           cat > $out/bin/oneswarm <<EOF
           #!/bin/sh
@@ -89,13 +92,10 @@
             pkgs-new.lib.makeLibraryPath libs
           }:\$LD_LIBRARY_PATH"
           
-          # CHANGE: Execute from the directory containing the files
           cd $out/share/oneswarm
 
-          echo $PWD
-
           exec ${pkgs.jdk}/bin/java \
-            -cp "OneSwarm.jar:swt.jar:oneswarm_gwt_ui/war" \
+            -cp "OneSwarm.jar:swt.jar" \
             org.gudy.azureus2.ui.swt.Main "\$@"
           EOF
 
