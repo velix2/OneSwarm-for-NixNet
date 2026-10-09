@@ -801,6 +801,19 @@ index a4a91960c0bc..04f4d75dbb49 100644
      sha256 = "0n7rlgvjn73pyil3s1l6p77m7wkc809n934rnzxv1b1za4pfar30";
    };
  
+diff --git a/pkgs/development/tools/misc/binutils/default.nix b/pkgs/development/tools/misc/binutils/default.nix
+index 1bb110e35fd3..e528ba42b689 100644
+--- a/pkgs/development/tools/misc/binutils/default.nix
++++ b/pkgs/development/tools/misc/binutils/default.nix
+@@ -7,7 +7,7 @@ stdenv.mkDerivation rec {
+   name = basename + stdenv.lib.optionalString (cross != null) "-${cross.config}";
+ 
+   src = fetchurl {
+-    url = "mirror://gnu/binutils/${basename}.tar.bz2";
++    url = "https://sourceware.org/pub/binutils/releases/binutils-2.20.tar.bz2";
+     sha256 = "1c3m789p5rwmmnck5ms4zcnc40axss3gxzivz571al1vmbq0kpz1";
+   };
+ 
 diff --git a/pkgs/misc/cups/default.nix b/pkgs/misc/cups/default.nix
 index 2c363ed80d5c..19845eddb891 100644
 --- a/pkgs/misc/cups/default.nix

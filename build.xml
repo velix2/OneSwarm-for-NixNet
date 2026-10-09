@@ -44,11 +44,11 @@
 
    <target name="core-jar" depends="compile-core" >
 	
-		<!-- Copy the relevant png/jpg/properties files to the output directory. -->
-		<patternset id="non.source.types">
+		<!-- Copy the relevant png/jpg files to the output directory. -->
+		<copy todir="${core-bin.dir}">
+			<fileset dir="az_src/src">
 			<include name="**/*.png" />
 			<include name="**/*.jpg" />
-			<include name="**/*.gif" />
 			<include name="**/*.properties" />
 			</fileset>
 		</copy>
