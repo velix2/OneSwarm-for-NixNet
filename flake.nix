@@ -82,6 +82,13 @@
 
           cp OneSwarm.jar $out/share/oneswarm
           cp build/swt/swt-gtk-linux-x86_64.jar $out/share/oneswarm/swt.jar
+
+          mkdir -p $out/share/oneswarm/az_src/src/org/gudy/azureus2/internat
+          mkdir -p $out/share/oneswarm/oneswarm_az_mods/mods_constants/org/gudy/azureus2/internat
+          
+          # Copy language files
+          cp az_src/src/org/gudy/azureus2/internat/*.properties $out/share/oneswarm/az_src/src/org/gudy/azureus2/internat/
+          cp oneswarm_az_mods/mods_constants/org/gudy/azureus2/internat/*.properties $out/share/oneswarm/oneswarm_az_mods/mods_constants/org/gudy/azureus2/internat/
           
           # Create launcher script
           cat > $out/bin/oneswarm <<EOF
