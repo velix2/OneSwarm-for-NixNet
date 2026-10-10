@@ -103,7 +103,7 @@
 
           exec ${pkgs.jdk}/bin/java \
             -cp "OneSwarm.jar:swt.jar" \
-            org.gudy.azureus2.ui.swt.Main "\$@"
+            org.gudy.azureus2.ui.swt.Main --autostart "\$@"
           EOF
 
           chmod +x $out/bin/oneswarm

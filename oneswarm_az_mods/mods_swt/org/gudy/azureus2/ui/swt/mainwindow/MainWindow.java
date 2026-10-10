@@ -189,6 +189,7 @@ public class MainWindow
 			this.events = events;
 
 			display.asyncExec(this);
+			window.forceShowForOldUI();
 
 		} catch (AzureusCoreException e) {
 
