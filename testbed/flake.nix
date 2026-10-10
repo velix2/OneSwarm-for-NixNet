@@ -42,14 +42,13 @@
                     export DISPLAY=:0
                     export FONTCONFIG_FILE="${pkgs.fontconfig.out}/etc/fonts/fonts.conf"
 
-                    xwayland-satellite &
-                    oneswarm
+                    xwayland-satellite > /dev/null 2>&1 &
+                    oneswarm > /dev/null 2>&1 
                   '';
-                  await = true;
-                  foreground = true;
                 };
               };
               bob = {
+                packages = [ pkgs.diffutils ];
                 shareWayland = true;
                 networking.interfaces.veth0.ipv4.addresses = [
                   {
@@ -57,15 +56,34 @@
                     prefixLength = 24;
                   }
                 ];
-                scripts.main.exec = ''
+                scripts.main = {
+                  exec = ''
+                    checkSuccess() {
+                      cp -r /root/.oneswarm /pwd
+
+                      # check if contents of "/root/OneSwarm Downloads/file.txt" is equal to the contents of "file.txt"
+                      if ! cmp -s "/root/OneSwarm Downloads/file.txt" ${./contents/file.txt}; then
+                        echo "Error: file.txt does not match the original file."
+                        exit 1
+                      fi
+                      echo "Success: File received."
+                      exit 0
+                    }
+
+                    trap checkSuccess EXIT
+                    trap 'exit 1' INT TERM
+
                     cp ${./contents/file.txt.torrent} file.txt.torrent
 
                     export DISPLAY=:0
                     export FONTCONFIG_FILE="${pkgs.fontconfig.out}/etc/fonts/fonts.conf"
 
-                    xwayland-satellite &
-                    oneswarm
-                '';
+                    xwayland-satellite > /dev/null 2>&1 &
+                    oneswarm > /dev/null 2>&1 
+                  '';
+                  await = true;
+                  foreground = true;
+                };
               };
             };
             veths.veth0 = {
