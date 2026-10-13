@@ -672,42 +672,19 @@ index 8a11e85ed98d..489c28dd63b0 100644
        abort "jdk requires i686-linux or x86_64 linux";
  
 diff --git a/pkgs/development/interpreters/python/2.6/default.nix b/pkgs/development/interpreters/python/2.6/default.nix
-index 53428de33f45..e35808323acf 100644
+index 53428de33f45..febcb7efdf0d 100644
 --- a/pkgs/development/interpreters/python/2.6/default.nix
 +++ b/pkgs/development/interpreters/python/2.6/default.nix
-@@ -64,6 +64,24 @@ stdenv.mkDerivation ( {
-   LIBRARY_PATH = concatStringsSep ":" (map (p: "${p}/lib") buildInputs);
-   configureFlags = "--enable-shared --with-threads --enable-unicode --with-wctype-functions";
- 
-+  #   preConfigure = ''
-+  #   # Purity.
-+  #   for i in /usr /sw /opt /pkg; do
-+  #     substituteInPlace ./setup.py --replace $i /no-such-path
-+  #   done
-+  # '' + (if readline != null then ''
-+  #   export NIX_LDFLAGS="$NIX_LDFLAGS -lncurses"
-+  # '' else "") +
-+  # ''
-+  # # use Lib/plat-linux2's files for any Linux kernel version
-+  # PY_PLAT="plat-linux$(uname -r | cut -d. -f1)"
-+  # for i in Lib/plat-*/regen; do
-+  #   if [ -f "$i" ]; then
-+  #     substituteInPlace "$i" --replace /usr/include/ ${stdenv.gcc.libc}/include/ || true
-+  #   fi
-+  # done
-+  # '';
-+
-   preConfigure = ''
-     # Purity.
-     for i in /usr /sw /opt /pkg; do
-@@ -71,7 +89,10 @@ stdenv.mkDerivation ( {
+@@ -71,7 +71,12 @@ stdenv.mkDerivation ( {
      done
    '' + (if readline != null then ''
      export NIX_LDFLAGS="$NIX_LDFLAGS -lncurses"
 -  '' else "");
 +  '' else "") +
 +  ''
-+    substituteInPlace "Lib/plat-generic/regen" --replace /usr/include/ ${stdenv.gcc.libc}/include/ || true
++    for i in Lib/plat-*/regen; do
++      substituteInPlace $i --replace /usr/include/ ${stdenv.gcc.libc}/include/
++    done
 +  '';
  
    setupHook = ./setup-hook.sh;
@@ -726,21 +703,23 @@ index 624b2c86513b..41b810c1bad0 100644
  
  ensureDir $out/lib
 diff --git a/pkgs/development/libraries/java/swt/default.nix b/pkgs/development/libraries/java/swt/default.nix
-index f06f9ff5be9d..63dd81f4ba60 100644
+index f06f9ff5be9d..ef207a0d8172 100644
 --- a/pkgs/development/libraries/java/swt/default.nix
 +++ b/pkgs/development/libraries/java/swt/default.nix
-@@ -1,8 +1,9 @@
+@@ -1,9 +1,11 @@
 -{stdenv, fetchurl, unzip, jdk, pkgconfig, gtk, libXtst}:
 +{stdenv, fetchurl, unzip, jdk, pkgconfig, gtk, libXtst, libXi}:
  
  stdenv.mkDerivation {
    name = "swt-3.1.1";
    builder = ./builder.sh;
-+  inherit jdk;
    
++  inherit jdk;
++
    # Alas, the Eclipse Project apparently doesn't produce source-only
    # releases of SWT.  So we just grab a binary release and extract
-@@ -12,5 +13,5 @@ stdenv.mkDerivation {
+   # "src.zip" from that.
+@@ -12,5 +14,5 @@ stdenv.mkDerivation {
      md5 = "23dfe5a4a566439c5f526d9ea3b3db1c";
    };
    
